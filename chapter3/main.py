@@ -51,6 +51,15 @@ class HashTable:
         self.table = [[] for _ in range(size)]
         self.N = 0
 
+    def __len__(self):
+        return self.N
+
+    def __getitem__(self, item):
+        hc = hash(item) % self.size
+        for entry in self.table[hc]:
+            if entry.key == item:
+                return entry.value
+
     def __str__(self):
         border = "+-" + "-" * (self.size // 50) + "-+"
         rows = [border]
@@ -104,6 +113,16 @@ class DynamicHashTable:
         self.load_factor = 0.75
         self.threshold = min(self.size * self.load_factor, size - 1)
 
+    def __getitem__(self, item):
+        hc = hash(item) % self.size
+        for entry in self.table[hc]:
+            if entry.key == item:
+                return entry.value
+        return None
+
+    def __len__(self):
+        return self.N
+
     def get(self, k):
         hc = hash(k) % self.size
         for entry in self.table[hc]:
@@ -148,6 +167,14 @@ class DynamicHashTable:
                 rows.append(border)
         return "\n".join(rows)
 
+    def remove(self, k):
+        hc = hash(k) % self.size
+        for i, entry in enumerate(self.table[hc]):
+            if entry.key == k:
+                del self.table[hc][i]
+                self.N -= 1
+                return entry.value
+        return None
 
 class Node:
     def __init__(self, data):
@@ -275,11 +302,12 @@ def test_dynamic_hashtable():
     print(table)
     table.put('Май', 31)
     table.put('Сентябрь', 30)
+    table.remove('Апрель')
     print(table)
 
 
 if __name__ == '__main__':
     # print_year(2023)
-    test_hashtable()
+    # test_hashtable()
     # test_linked_list()
     test_dynamic_hashtable()
