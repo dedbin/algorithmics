@@ -51,6 +51,22 @@ class HashTable:
         self.table = [[] for _ in range(size)]
         self.N = 0
 
+    def __str__(self):
+        border = "+-" + "-" * (self.size // 50) + "-+"
+        rows = [border]
+        rows.append("| key | value |")
+        rows.append(border)
+        for bucket in self.table:
+            if len(bucket) == 0:
+                continue
+            else:
+                for entry in bucket:
+                    row = f"| {entry.key} | {entry.value} "
+                    rows.append(row)
+            rows[-1] += "|"
+            rows.append(border)
+        return "\n".join(rows)
+
     def get(self, k):
         hc = hash(k) % self.size
         for entry in self.table[hc]:
@@ -64,7 +80,7 @@ class HashTable:
             if entry.key == k:
                 entry.value = v
                 return
-        self.table[hc] = Entry(k, v)
+        self.table[hc].append(Entry(k, v))
         self.N += 1
 
     def remove(self, k):
@@ -75,6 +91,63 @@ class HashTable:
                 self.N -= 1
                 return entry.value
         return None
+
+
+class DynamicHashTable:
+    def __init__(self, size: int):
+        self.table = [[] for _ in range(size)]
+        if size < 0:
+            raise ValueError("Hashtable storage must Ье at least 1")
+        self.size = size
+        self.N = 0
+
+        self.load_factor = 0.75
+        self.threshold = min(self.size * self.load_factor, size - 1)
+
+    def get(self, k):
+        hc = hash(k) % self.size
+        for entry in self.table[hc]:
+            if entry.key == k:
+                return entry.value
+        return None
+
+    def put(self, k, v):
+        hc = hash(k) % self.size
+        for entry in self.table[hc]:
+            if entry.key == k:
+                entry.value = v
+                return
+        self.table[hc].append(Entry(k, v))
+        self.N += 1
+
+        if self.N >= self.threshold:
+            self.resize(2 * self.size)
+
+    def resize(self, new_size):
+        temp = DynamicHashTable(new_size)
+        for bucket in self.table:
+            for key, value in bucket:
+                temp.put(key, value)
+        self.table, self.size = temp.table, new_size
+        self.threshold = self.size * self.load_factor
+
+    def __str__(self):
+        border = "+-" + "-" * (len(self.table) // 50) + "-+"
+        rows = [border]
+        rows.append("| key | value |")
+        rows.append(border)
+        for bucket in self.table:
+            if len(bucket) == 0:
+                continue
+            else:
+                row = "|"
+                for entry in bucket:
+                    row += f" {entry.key} | {entry.value}"
+                row += " _ |" * (len(bucket) - 1)
+                rows.append(row)
+                rows.append(border)
+        return "\n".join(rows)
+
 
 class Node:
     def __init__(self, data):
@@ -173,8 +246,10 @@ class LinkedList:
 def test_hashtable():
     table = HashTable(1000)
     table.put('Апрель', 30)
+    print(table)
     table.put('Май', 31)
     table.put('Сентябрь', 30)
+    print(table)
     print(table.get('Апрель'))
     print(table.get('Август'))
 
@@ -194,7 +269,17 @@ def test_linked_list():
     print(ll)
 
 
+def test_dynamic_hashtable():
+    table = DynamicHashTable(1000)
+    table.put('Апрель', 30)
+    print(table)
+    table.put('Май', 31)
+    table.put('Сентябрь', 30)
+    print(table)
+
+
 if __name__ == '__main__':
     # print_year(2023)
-    # test_hashtable()
-    test_linked_list()
+    test_hashtable()
+    # test_linked_list()
+    test_dynamic_hashtable()
