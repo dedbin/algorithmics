@@ -101,6 +101,11 @@ class HashTable:
                 return entry.value
         return None
 
+    def __iter__(self):
+        for chain in self.table:
+            for entry in chain:
+                yield entry.key, entry.value
+
 
 class DynamicHashTable:
     def __init__(self, size: int):
@@ -175,6 +180,7 @@ class DynamicHashTable:
                 self.N -= 1
                 return entry.value
         return None
+
 
 class Node:
     def __init__(self, data):
